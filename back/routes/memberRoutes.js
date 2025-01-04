@@ -1,12 +1,23 @@
 const express = require('express');
-const Member = require('../models/member');
-
+const mongoose = require('mongoose');
 const router = express.Router();
 
-// Get all members
+const memberSchema = new mongoose.Schema({
+	name: { type: String, required: true },
+	entranceDate: { type: Date, required: true },
+	points: { type: Number, default: 0 },
+	guild: { type: String, required: true }  // Ensure the 'guild' field is required
+  });
+  
+  module.exports = mongoose.model('Member', memberSchema);
+
+// Get all members or filter by guild
 router.get('/', async (req, res) => {
+  const { guild } = req.query;
+
   try {
-    const members = await Member.find();
+    const filter = guild ? { guild } : {};
+    const members = await Member.find(filter);
     res.json(members);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch members' });
@@ -15,10 +26,14 @@ router.get('/', async (req, res) => {
 
 // Add a new member
 router.post('/', async (req, res) => {
-  const { name, entranceDate,  points} = req.body;
+  const { name, entranceDate, points, guild } = req.body;
+
+  if (!name || !entranceDate || points == null || !guild) {
+    return res.status(400).json({ error: 'All fields including guild are required.' });
+  }
 
   try {
-    const newMember = new Member({ name, entranceDate, points });
+    const newMember = new Member({ name, entranceDate, points, guild });
     await newMember.save();
     res.status(201).json(newMember);
   } catch (err) {
@@ -37,14 +52,18 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Update member points
-router.patch('/:id/points', async (req, res) => {
+router.put('/:id/points', async (req, res) => {
   const { points } = req.body;
+
+  if (points == null) {
+    return res.status(400).json({ error: 'Points value is required.' });
+  }
 
   try {
     const member = await Member.findById(req.params.id);
     if (!member) return res.status(404).json({ error: 'Member not found' });
 
-    member.points += points;
+    member.points = points;
     await member.save();
     res.json(member);
   } catch (err) {
@@ -52,4 +71,11 @@ router.patch('/:id/points', async (req, res) => {
   }
 });
 
+// Error handling middleware
+router.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'An internal error occurred.' });
+});
+
 module.exports = router;
+
