@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5001/api/members';
+const API_URL = 'https://guildwebapp.onrender.com/api/members';
 
 export const fetchMembers = async () => {
   const response = await axios.get(API_URL);

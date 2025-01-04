@@ -11,7 +11,7 @@ const AdminPage = () => {
 
   useEffect(() => {
     // Fetch members from the backend API
-    axios.get('http://localhost:5001/api/members')
+    axios.get('https://guildwebapp.onrender.com/api/members')
       .then((response) => {
         setMembers(response.data);
       })
@@ -25,7 +25,7 @@ const AdminPage = () => {
 
   const handleAddMember = (e) => {
 	e.preventDefault();
-	axios.post('http://localhost:5001/api/members', newMember)
+	axios.post('https://guildwebapp.onrender.com/api/members', newMember)
 	  .then((response) => {
 		setMembers([...members, response.data]); // Add the new member to the list
 		setNewMember({ name: '', entranceDate: '', points: 0 }); // Reset form
@@ -35,7 +35,7 @@ const AdminPage = () => {
   
 
   const handleDeleteMember = (id) => {
-    axios.delete(`http://localhost:5001/api/members/${id}`)
+    axios.delete(`https://guildwebapp.onrender.com/api/members/${id}`)
       .then(() => {
         setMembers(members.filter((member) => member._id !== id)); // Remove the deleted member from the list
       })
@@ -43,7 +43,7 @@ const AdminPage = () => {
   };
 
   const handleUpdatePoints = (id, points) => {
-    axios.put(`http://localhost:5001/api/members/${id}`, { points })
+    axios.put(`https://guildwebapp.onrender.com/api/members/${id}`, { points })
       .then((response) => {
         setMembers(members.map((member) => 
           member._id === id ? { ...member, points: response.data.points } : member
