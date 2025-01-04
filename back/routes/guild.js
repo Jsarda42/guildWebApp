@@ -13,6 +13,27 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Add this to routes/guildRoutes.js
+
+// Create a new guild
+router.post('/', async (req, res) => {
+	const { name, minimumPoints } = req.body;
+  
+	if (!name) {
+	  return res.status(400).json({ error: 'Guild name is required.' });
+	}
+  
+	try {
+	  const newGuild = new Guild({ name, minimumPoints });
+	  await newGuild.save();
+	  res.status(201).json(newGuild);
+	} catch (err) {
+	  console.error(err);
+	  res.status(500).json({ error: 'Failed to create guild.' });
+	}
+  });
+  
+
 // Get a single guild by name
 router.get('/:name', async (req, res) => {
   try {
