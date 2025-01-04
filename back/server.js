@@ -2,6 +2,8 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');  // Enable CORS for all routes
 const memberRoutes = require('./routes/memberRoutes');
+const guildRoutes = require('./routes/guild');
+
 const mongoose = require('mongoose');
 
 dotenv.config(); // Load environment variables from .env
@@ -20,6 +22,8 @@ app.get('/', (req, res) => {
 
 // Member routes
 app.use('/api/members', memberRoutes);
+app.use('/api/guilds', guildRoutes);
+
 
 // MongoDB connection
 mongoose

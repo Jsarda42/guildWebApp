@@ -5,19 +5,23 @@ const memberSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,  // Name is required
+      required: true, // Name is required
     },
     entranceDate: {
       type: Date,
-      required: true,  // Entrance date is required
+      required: true, // Entrance date is required
     },
     points: {
       type: Number,
-      default: 0,  // Default value for points is 0
+      default: 0, // Default value for points is 0
     },
     guild: {
       type: String,
-      required: true,  // Guild is required
+      required: true, // Guild is required
+    },
+    minimumPoints: {
+      type: Number,
+      default: 0, // Default value for minimum points is 0
     },
   },
   {
@@ -27,3 +31,4 @@ const memberSchema = new mongoose.Schema(
 
 // Create and export the Member model
 module.exports = mongoose.model('Member', memberSchema);
+

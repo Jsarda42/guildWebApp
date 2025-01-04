@@ -1,9 +1,7 @@
 const express = require('express');
 const Member = require('../models/member');
-
 const router = express.Router();
 
-// Get all members (with optional guild filter)
 router.get('/', async (req, res) => {
   const { guild } = req.query;
   
