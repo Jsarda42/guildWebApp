@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
 	  res.status(201).json(newMember); // Return the newly created member
 	} catch (err) {
 	  console.error(err); // Log the error for debugging
-	  res.status(500).json({ error: 'Failed to create member oooo' });
+	  res.status(500).json({ error: 'Failed to create member' });
 	}
   });
   

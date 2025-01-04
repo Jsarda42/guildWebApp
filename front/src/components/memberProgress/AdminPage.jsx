@@ -9,21 +9,32 @@ const AdminPage = () => {
     name: '',
     entranceDate: '',
     points: 0,
-    guild: selectedGuild, // Add guild to the newMember state
+    guild: selectedGuild,
   });
   const [error, setError] = useState(null);
 
-  // Fetch members based on the selected guild
+  // Fetch members and minimum points based on the selected guild
   useEffect(() => {
+    if (isAuthenticated) {
     axios
       .get(`https://guildwebapp.onrender.com/api/members?guild=${selectedGuild}`)
       .then((response) => {
         setMembers(response.data);
       })
-      .catch((error) => {
+        .catch(() => {
         setError('Error fetching members.');
       });
-  }, [selectedGuild]);
+
+      axios
+        .get(`https://guildwebapp.onrender.com/api/guilds/${selectedGuild}/minimum-points`)
+        .then((response) => {
+          setMinimumPoints(response.data.minimumPoints || 0);
+        })
+        .catch(() => {
+          setError('Error fetching minimum points.');
+        });
+    }
+  }, [selectedGuild, isAuthenticated]);
 
   // Handle adding a new member
   const handleAddMember = (e) => {
@@ -33,14 +44,13 @@ const AdminPage = () => {
       return;
     }
 
-    // Ensure guild is included when sending the request
     axios
       .post(`https://guildwebapp.onrender.com/api/members`, newMember)
       .then((response) => {
         setMembers([...members, response.data]);
-        setNewMember({ name: '', entranceDate: '', points: 0, guild: selectedGuild }); // Reset form with selected guild
+        setNewMember({ name: '', entranceDate: '', points: 0, guild: selectedGuild });
       })
-      .catch((error) => {
+      .catch(() => {
         setError('Error adding member.');
       });
   };
@@ -50,12 +60,69 @@ const AdminPage = () => {
     axios
       .delete(`https://guildwebapp.onrender.com/api/members/${id}`)
       .then(() => {
-        setMembers(members.filter((member) => member._id !== id)); // Remove deleted member from the list
+        setMembers(members.filter((member) => member._id !== id));
       })
-      .catch((error) => {
+      .catch(() => {
         setError('Error deleting member.');
       });
   };
+
+  // Handle updating minimum points
+  const handleUpdateMinimumPoints = (e) => {
+    e.preventDefault();
+    if (minimumPoints < 0) {
+      alert('Minimum points cannot be negative.');
+      return;
+    }
+
+    axios
+      .post(`https://guildwebapp.onrender.com/api/guilds/${selectedGuild}/minimum-points`, {
+        minimumPoints,
+      })
+      .then(() => {
+        alert('Minimum points updated successfully.');
+      })
+      .catch(() => {
+        setError('Error updating minimum points.');
+      });
+  };
+
+  // Handle login authentication
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (password === correctPassword) {
+      setIsAuthenticated(true);
+    } else {
+      alert('Incorrect password. Please try again.');
+    }
+  };
+
+  // Show login form if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <form
+          onSubmit={handleLogin}
+          className="bg-white p-6 rounded-lg shadow-lg w-96"
+        >
+          <h2 className="text-2xl font-bold text-center mb-4">Admin Login</h2>
+          <input
+            type="password"
+            placeholder="Enter password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg py-2 px-4 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200"
+          >
+            Login
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-page container mx-auto p-8">
@@ -69,7 +136,7 @@ const AdminPage = () => {
           value={selectedGuild}
           onChange={(e) => {
             setSelectedGuild(e.target.value);
-            setNewMember({ ...newMember, guild: e.target.value }); // Update selected guild in newMember state
+            setNewMember({ ...newMember, guild: e.target.value });
           }}
           className="bg-white border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
         >

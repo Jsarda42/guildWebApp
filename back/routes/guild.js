@@ -3,9 +3,10 @@ const Guild = require('../models/guild');
 
 const router = express.Router();
 
+// Fetch all guilds
 router.get('/', async (req, res) => {
   try {
-    const guilds = await Guild.find(); // Fetch all guilds
+    const guilds = await Guild.find();
     res.json(guilds);
   } catch (err) {
     console.error(err);
@@ -13,26 +14,23 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Add this to routes/guildRoutes.js
-
 // Create a new guild
 router.post('/', async (req, res) => {
-	const { name, minimumPoints } = req.body;
+  const { name, minimumPoints } = req.body;
   
-	if (!name) {
-	  return res.status(400).json({ error: 'Guild name is required.' });
-	}
+  if (!name) {
+    return res.status(400).json({ error: 'Guild name is required.' });
+  }
   
-	try {
-	  const newGuild = new Guild({ name, minimumPoints });
-	  await newGuild.save();
-	  res.status(201).json(newGuild);
-	} catch (err) {
-	  console.error(err);
-	  res.status(500).json({ error: 'Failed to create guild.' });
-	}
-  });
-  
+  try {
+    const newGuild = new Guild({ name, minimumPoints });
+    await newGuild.save();
+    res.status(201).json(newGuild);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to create guild.' });
+  }
+});
 
 // Get a single guild by name
 router.get('/:name', async (req, res) => {
@@ -60,7 +58,7 @@ router.put('/:name/minimum-points', async (req, res) => {
     const guild = await Guild.findOneAndUpdate(
       { name: req.params.name },
       { minimumPoints },
-      { new: true, runValidators: true } // Return updated document
+      { new: true, runValidators: true }
     );
 
     if (!guild) {
@@ -74,4 +72,21 @@ router.put('/:name/minimum-points', async (req, res) => {
   }
 });
 
+// Get minimum points for a specific guild
+router.get('/:name/minimum-points', async (req, res) => {
+  try {
+    const guild = await Guild.findOne({ name: req.params.name });
+
+    if (!guild) {
+      return res.status(404).json({ error: 'Guild not found' });
+    }
+
+    res.json({ minimumPoints: guild.minimumPoints });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch minimum points' });
+  }
+});
+
 module.exports = router;
+
