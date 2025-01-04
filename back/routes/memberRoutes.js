@@ -1,81 +1,79 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const Member = require('../models/member');
+
 const router = express.Router();
 
-const memberSchema = new mongoose.Schema({
-	name: { type: String, required: true },
-	entranceDate: { type: Date, required: true },
-	points: { type: Number, default: 0 },
-	guild: { type: String, required: true }  // Ensure the 'guild' field is required
-  });
-  
-  module.exports = mongoose.model('Member', memberSchema);
-
-// Get all members or filter by guild
+// Get all members (with optional guild filter)
 router.get('/', async (req, res) => {
   const { guild } = req.query;
-
+  
   try {
-    const filter = guild ? { guild } : {};
-    const members = await Member.find(filter);
-    res.json(members);
+    const filter = guild ? { guild } : {};  // If guild is provided, filter by guild
+    const members = await Member.find(filter);  // Fetch members based on filter
+    res.json(members);  // Respond with members
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch members' });
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch members' });  // Generic error message
   }
 });
 
-// Add a new member
+// POST to create a new member
 router.post('/', async (req, res) => {
-  const { name, entranceDate, points, guild } = req.body;
+	const { name, entranceDate, points, guild } = req.body;
+  
+	if (!name || !entranceDate || points == null || !guild) {
+	  return res.status(400).json({ error: 'All fields including guild are required.' });
+	}
+  
+	try {
+	  const newMember = new Member({ name, entranceDate, points, guild });
+	  await newMember.save();
+	  res.status(201).json(newMember); // Return the newly created member
+	} catch (err) {
+	  console.error(err); // Log the error for debugging
+	  res.status(500).json({ error: 'Failed to create member oooo' });
+	}
+  });
+  
 
-  if (!name || !entranceDate || points == null || !guild) {
-    return res.status(400).json({ error: 'All fields including guild are required.' });
-  }
-
-  try {
-    const newMember = new Member({ name, entranceDate, points, guild });
-    await newMember.save();
-    res.status(201).json(newMember);
-  } catch (err) {
-    res.status(400).json({ error: 'Failed to create member' });
-  }
-});
-
-// Delete a member
+// Delete a member by ID
 router.delete('/:id', async (req, res) => {
   try {
-    await Member.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Member deleted' });
+    const deletedMember = await Member.findByIdAndDelete(req.params.id);  // Delete the member
+    if (!deletedMember) {
+      return res.status(404).json({ error: 'Member not found' });  // Handle case where member is not found
+    }
+    res.json({ message: 'Member deleted' });  // Send success message
   } catch (err) {
-    res.status(500).json({ error: 'Failed to delete member' });
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete member' });  // Handle any errors during deletion
   }
 });
 
-// Update member points
+// Update member points by ID
 router.put('/:id/points', async (req, res) => {
   const { points } = req.body;
 
   if (points == null) {
-    return res.status(400).json({ error: 'Points value is required.' });
+    return res.status(400).json({ error: 'Points value is required.' });  // Validation check for points
   }
 
   try {
-    const member = await Member.findById(req.params.id);
-    if (!member) return res.status(404).json({ error: 'Member not found' });
+    const member = await Member.findById(req.params.id);  // Find the member by ID
+    if (!member) {
+      return res.status(404).json({ error: 'Member not found' });  // Handle case where member is not found
+    }
 
-    member.points = points;
-    await member.save();
-    res.json(member);
+    member.points = points;  // Update points
+    await member.save();  // Save the updated member
+
+    res.json(member);  // Send the updated member as a response
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update points' });
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update points' });  // Handle any errors during the points update
   }
-});
-
-// Error handling middleware
-router.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'An internal error occurred.' });
 });
 
 module.exports = router;
 
+  
